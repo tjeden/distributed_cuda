@@ -3,46 +3,63 @@
 #include "SocketException.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 
 int main ( int argc, int argv[] ) {
   std::string client_ip = "127.0.0.1";
-  std::string client_port = "9999";
+  int client_port = 9876;
   std::string client_number;
 
-  try {
-    ServerSocket server ( 30000 );
-      while ( true ){
-        ServerSocket new_sock;
-        server.accept ( new_sock );
-        try {
-          while ( true ) {
-            std::string data;
-            new_sock >> data;
-            new_sock << data;
-          }
-        }
-        catch ( SocketException& ) {}
-      }
+  try 
+  {
+    ClientSocket client_socket ( "localhost", 5555 );
 
-      ClientSocket client_socket ( "localhost", 5555 );
+    std::string reply;
 
-      std::string reply;
+    std::stringstream client_port_string;
+    client_port_string << client_port;
+    client_socket << "REGISTER " << client_ip << " " << client_port_string.str() << " foo";
+    client_socket >> reply;
 
-      try
-        {
-          client_socket << "REGISTER " << client_ip << " " << client_port << " foo";
-          client_socket >> reply;
-        }
-      catch ( SocketException& ) {}
+    std::cout << "We received this response from the server:\n" << reply << "\n";;
 
-      std::cout << "We received this response from the server:\n\"" << reply << "\"\n";;
-      client_number = reply;
-
-    }
+  }
   catch ( SocketException& e )
-    {
-      std::cout << "Exception was caught:" << e.description() << "\n";
-    }
+  {
+    std::cout << "Exception was caught:" << e.description() << "\n";
+  }
 
+  try 
+  {
+    std::cout << "Starting listener" << std::endl;
+    ServerSocket server (client_port);
+    std::cout << "Listener started" << std::endl;
+    while ( true )
+    {
+      ServerSocket new_sock;
+      server.accept ( new_sock );
+      std::cout << "Socket accepted\n";
+      try 
+      {
+        while ( true ) 
+        {
+          std::string data;
+          std::cout << "1\n";
+          new_sock >> data;
+          std::cout << "2\n";
+          new_sock << data;
+          std::cout << "3\n";
+        }
+      }
+      catch ( SocketException& e) 
+      {
+        std::cout << "Exception was caught:" << e.description() << "\n";
+      }
+    }
+  }
+  catch ( SocketException& e)
+  {
+    std::cout << "Exception was caught:" << e.description() << "\n";
+  }
   return 0;
 }

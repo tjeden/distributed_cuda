@@ -29,3 +29,4 @@ scripts_compressed.js
 .rvmrc
 data/output.jpg
 *.o
+simple_client
