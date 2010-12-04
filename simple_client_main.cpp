@@ -31,12 +31,12 @@ int main ( int argc, int argv[] ) {
     while ( true )
     {
       ServerSocket new_sock;
-      server.accept ( new_sock );
       std::cout << "Socket accepted\n";
       try 
       {
         while ( true ) 
         {
+          server.accept ( new_sock );
           std::string data;
           std::cout << "1\n";
           new_sock >> data;
