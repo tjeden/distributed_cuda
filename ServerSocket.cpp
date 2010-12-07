@@ -42,10 +42,15 @@ const ServerSocket& ServerSocket::operator << ( const std::string& s ) const
 
 const ServerSocket& ServerSocket::operator >> ( std::string& s ) const
 {
-  if ( ! Socket::recv ( s ) )
-    {
-      throw SocketException ( "Could not read from socket." );
-    }
+  int status;
+  std::string temp;
+  do {
+    status = Socket::recv ( temp );
+    s += temp;
+  } while (status == 500);
+
+  if ( ! status )
+    throw SocketException ( "Could not read from socket." );
 
   return *this;
 }

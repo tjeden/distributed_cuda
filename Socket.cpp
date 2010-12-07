@@ -143,7 +143,10 @@ int Socket::recv ( std::string& s ) const
     }
   else
     {
-      s = buf;
+      for (int i=0; (i< status); ++i)
+      {
+        s.append(1, buf[i]);
+      }
       return status;
     }
 }
