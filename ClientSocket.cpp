@@ -40,3 +40,11 @@ const ClientSocket& ClientSocket::operator >> ( std::string& s ) const
 
   return *this;
 }
+
+void ClientSocket::close( )
+{
+  if ( ! Socket::close () )
+    {
+      throw SocketException ( "Could not close socket." );
+    }
+}

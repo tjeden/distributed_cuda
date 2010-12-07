@@ -191,3 +191,21 @@ void Socket::set_non_blocking ( const bool b )
 	  F_SETFL,opts );
 
 }
+
+bool Socket::close() const
+{
+  if ( ! is_valid() )
+    {
+      return false;
+    }
+
+  int listen_close = ::close( m_sock );
+
+
+  if ( listen_close == -1 )
+    {
+      return false;
+    }
+
+  return true;
+}

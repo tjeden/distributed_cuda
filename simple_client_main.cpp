@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 int main ( int argc, int argv[] ) {
   std::string client_ip = "127.0.0.1";
@@ -14,7 +15,7 @@ int main ( int argc, int argv[] ) {
   {
     std::string reply;
     std::stringstream client_port_string;
-    std::stringstream buff;
+    std::string buff;
 
     ClientSocket client_socket ( "localhost", 5555 );
 
@@ -37,17 +38,19 @@ int main ( int argc, int argv[] ) {
         while ( true ) 
         {
           server.accept ( new_sock );
-          std::string data;
-          std::cout << "1\n";
+          std::string data = "";
+          //std::cout << "1\n";
           new_sock >> data;
-          std::cout << "2\n";
+          std::cout << data.length() << "\n";
+          //std::cout << "2\n";
           new_sock << "OK";
-          std::cout << "3\n";
-          buff << "RESPONSE " << client_number << " " << data;
-          client_socket << buff.str();
-          std::cout << "4\n";
+          new_sock.close();
+          //std::cout << "3\n";
+          buff = "RESPONSE " + client_number + " " + data;
+          client_socket << buff;
+          //std::cout << "4\n";
           client_socket >> reply;
-          std::cout << "5\n";
+          //std::cout << "5\n";
         }
       }
       catch ( SocketException& e) 

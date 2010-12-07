@@ -18,6 +18,7 @@ class ServerSocket : private Socket
   const ServerSocket& operator >> ( std::string& ) const;
 
   void accept ( ServerSocket& );
+  void close( );
 
 };
 
