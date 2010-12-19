@@ -6,6 +6,8 @@
 #include <sstream>
 #include <vector>
 
+extern "C" int calculate(const char *, char*);
+
 int main ( int argc, int argv[] ) {
   std::string client_ip = "127.0.0.1";
   int client_port = 9876;
@@ -20,7 +22,8 @@ int main ( int argc, int argv[] ) {
     ClientSocket client_socket ( "localhost", 5555 );
 
     client_port_string << client_port;
-    client_socket << "REGISTER " << client_ip << " " << client_port_string.str() << " foo";
+    std::cout << "Update?\n";
+    client_socket << "REGISTER " << client_ip << " " << client_port_string.str() << " vector_add";
     client_socket >> reply;
 
     client_number = reply;
@@ -39,6 +42,7 @@ int main ( int argc, int argv[] ) {
         {
           server.accept ( new_sock );
           std::string data = "";
+          char result[10];
           //std::cout << "1\n";
           new_sock >> data;
           std::cout << data.length() << "\n";
@@ -46,7 +50,11 @@ int main ( int argc, int argv[] ) {
           new_sock << "OK";
           new_sock.close();
           //std::cout << "3\n";
-          buff = "RESPONSE " + client_number + " " + data;
+          std::cout << "Processing.\n";
+          calculate(data.c_str(), result);
+          //result[0] = 'd';
+          std::cout << "Done.\n";
+          buff = "RESPONSE " + client_number + " " + result;
           client_socket << buff;
           //std::cout << "4\n";
           client_socket >> reply;
