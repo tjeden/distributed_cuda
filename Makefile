@@ -9,6 +9,7 @@ CCFILES   := \
   Socket.cpp \
   ClientSocket.cpp \
   ServerSocket.cpp \
+  Client.cpp \
   simple_client_main.cpp \
 #
 # ################################################################################
