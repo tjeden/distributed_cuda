@@ -1,8 +1,14 @@
 #include "Client.h"
 
-extern "C" int calculate(const char *, char*);
+#define REMOTE2
+
+extern "C" int calculate(char *, char*);
 
 int main ( int argc, int argv[] ) {
+#ifndef REMOTE
+  char a[1],b[1];
+  return calculate(a,b);
+#endif
   std::string client_ip = "127.0.0.1";
   int client_port = 9876;
   std::string client_number;
@@ -13,7 +19,7 @@ int main ( int argc, int argv[] ) {
     std::string reply;
     std::stringstream client_port_string;
 
-    client simple_client(client_ip, client_port, "foo");
+    client simple_client(client_ip, client_port, "limes");
     client_number = simple_client.register_in_server();
 
     std::cout << "We received this response from the server:\n" << client_number << "\n";;
@@ -28,16 +34,15 @@ int main ( int argc, int argv[] ) {
         {
           std::string data = "";
           data = simple_client.accept_data();
-          std::cout << data.length() << "\n";
+          //std::cout << data.length() << "\n";
 
           //Temporary
-          //std::cout << "Processing.\n";
-          //char result[10];
-          //calculate(data.c_str(), result);
-          //result[0] = 'd';
-          //std::cout << "Done.\n";
+          std::cout << "Processing.\n";
+          char result[10000];
+          calculate(const_cast<char *>(data.c_str()), result);
+          std::cout << "Done.\n";
 
-          simple_client.send_data(data);
+          simple_client.send_data(result);
         }
       }
       catch ( SocketException& e) 

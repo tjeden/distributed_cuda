@@ -15,7 +15,7 @@ std::string client::register_in_server(void)
   std::stringstream client_port_string;
   client_port_string << port;
 
-  client_socket << "REGISTER " << ip << " " << client_port_string.str() << " " << task;
+  client_socket << "REGISTER " << ip << " " << "9876" << " " << task;
   client_socket >> reply;
   number = reply;
 

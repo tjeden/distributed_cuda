@@ -20,6 +20,11 @@
 // Includes
 #include <stdio.h>
 #include <cutil_inline.h>
+#include <time.h>
+
+#define REMOTE2
+#define GPU
+#define ITER 1000
 
 // Variables
 float* h_A;
@@ -40,17 +45,40 @@ void ParseArguments(int, char**);
 __global__ void VecAdd(const float* A, const float* B, float* C, int N)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N)
-        C[i] = A[i] + B[i];
+    int n = ITER;
+    if (i < N){
+      C[i]= 0;
+      for (int j = 0; j< n; j++)
+      {
+        C[i]= (C[i]+A[i]) / B[i];
+      }
+    }
+}
+
+void Host(const float* A, const float* B, float* C, int N)
+{
+  int n = ITER;
+  for (int i =0; i < N; i++)
+  {
+    if (i < N){
+      C[i] = 0;
+      for (int j = 0; j< n; j++)
+      {
+        C[i]= (C[i]+A[i]) / B[i];
+      }
+    }
+  }
 }
 
 // Host code
 extern "C" 
-int calculate(const char *data, char *result)
+int calculate(char *data, char *result)
 {
-    printf("Vector addition\n");
-    printf("dane: %s\n", data);
-    int N = 100;
+#ifdef REMOTE
+    int N = 10000;
+#else 
+    int N = 10000000;
+#endif
     size_t size = N * sizeof(float);
 
     // Allocate input vectors h_A and h_B in host memory
@@ -62,14 +90,32 @@ int calculate(const char *data, char *result)
     if (h_C == 0) Cleanup();
     
     // Initialize input vectors
+#ifdef REMOTE
+    ////printf("dane: %s\n", data);
+    char *pre;
+    pre = strtok(data," ");
+    int i =0;
+    while (pre != NULL)
+    {
+      h_A[i]= atof(pre);
+      h_B[i]= atof(pre);
+      pre = strtok (NULL, " ");
+      i ++;
+    }
+    N = i;
+    size = N * sizeof(float);
+#else
     DataInit(h_A, N, data);
     DataInit(h_B, N, data);
+#endif
 
     // Allocate vectors in device memory
     cutilSafeCall( cudaMalloc((void**)&d_A, size) );
     cutilSafeCall( cudaMalloc((void**)&d_B, size) );
     cutilSafeCall( cudaMalloc((void**)&d_C, size) );
 
+    clock_t start = clock();
+#ifdef GPU
     // Copy vectors from host memory to device memory
     cutilSafeCall( cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice) );
     cutilSafeCall( cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice) );
@@ -77,7 +123,10 @@ int calculate(const char *data, char *result)
     // Invoke kernel
     int threadsPerBlock = 256;
     int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+
+    /* Code you want timed here */
     VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
+
     cutilCheckMsg("kernel launch failure");
 #ifdef _DEBUG
     cutilSafeCall( cudaThreadSynchronize() );
@@ -87,19 +136,11 @@ int calculate(const char *data, char *result)
     // h_C contains the result in host memory
     cutilSafeCall( cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost) );
     
-    // Verify result
-    int i;
-    for (i = 0; i < N; ++i) {
-        //printf("A: %f B: %f C: %f\n", h_A[i], h_B[i], h_C[i]);
-        float sum = h_A[i] + h_B[i];
-        //result[i] = h_C[0];//(char *)h_C;
-        if (fabs(h_C[i] - sum) > 1e-5)
-            break;
-    }
-        sprintf(result,"%f",h_C[0]);
-    printf("%s \n", (i == N) ? "PASSED" : "FAILED");
+#else
+    Host(h_A, h_B, h_C, N);
+#endif
+    printf("Time elapsed: %f\n", ((double)clock() - start) / CLOCKS_PER_SEC);
 
-    
     Cleanup();
     return 0;
 }
